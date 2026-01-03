@@ -30,7 +30,7 @@ app.use("/api/messages", messageRoutes);
 if (ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("*", (req, res) => {
+  app.get("*", (_, res) => {
     res.sendFile(
       path.join(__dirname, "../frontend", "dist", "index.html")
     );
@@ -41,7 +41,7 @@ if (ENV.NODE_ENV === "production") {
 connectDB();
 
 /* -------------------- LOCAL SERVER ONLY -------------------- */
-if (ENV.NODE_ENV !== "production") {
+if (ENV.NODE_ENV !== "production" && server) {
   server.listen(PORT, () => {
     console.log("Server running on port:", PORT);
   });

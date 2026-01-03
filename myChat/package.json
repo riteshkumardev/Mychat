@@ -1,13 +1,14 @@
 {
   "name": "chatify-app",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
+    "dev": "npm run dev --prefix backend",
     "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
-    "start": "npm run start --prefix backend"
+    "start": "node backend/src/server.js"
   },
   "keywords": [],
   "author": "",
