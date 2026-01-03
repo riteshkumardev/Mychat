@@ -36,7 +36,6 @@ if (ENV.NODE_ENV === "production") {
     );
   });
 }
-
 /* -------------------- DATABASE -------------------- */
 connectDB();
 
