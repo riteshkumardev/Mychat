@@ -3,40 +3,63 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
   updateProfile
 } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { auth } from "../../firebase";
 
-
+let authUnsubscribe = null; // 🔒 prevent multiple listeners
 
 export const useAuthStore = create((set) => ({
-  user: null,
+  /* ---------- STATE ---------- */
+  authUser: null,
+  isCheckingAuth: true,
   isLoggingIn: false,
   isSigningUp: false,
   error: null,
+
+  /* ---------- INIT AUTH LISTENER ---------- */
+  initAuthListener: () => {
+    // ⛔ already listening
+    if (authUnsubscribe) return;
+
+    authUnsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        set({
+          authUser: {
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || "User",
+            photoURL: user.photoURL || null
+          },
+          isCheckingAuth: false
+        });
+      } else {
+        set({
+          authUser: null,
+          isCheckingAuth: false
+        });
+      }
+    });
+  },
 
   /* ---------- SIGN UP ---------- */
   signup: async ({ fullName, email, password }) => {
     try {
       set({ isSigningUp: true, error: null });
 
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const res = await createUserWithEmailAndPassword(auth, email, password);
 
-      // 👤 Set display name
       await updateProfile(res.user, {
         displayName: fullName
       });
 
       set({
-        user: {
+        authUser: {
           uid: res.user.uid,
           email: res.user.email,
           name: fullName,
-          photoURL: res.user.photoURL || null
+          photoURL: null
         },
         isSigningUp: false
       });
@@ -56,7 +79,7 @@ export const useAuthStore = create((set) => ({
       const res = await signInWithEmailAndPassword(auth, email, password);
 
       set({
-        user: {
+        authUser: {
           uid: res.user.uid,
           email: res.user.email,
           name: res.user.displayName || "User",
@@ -75,6 +98,10 @@ export const useAuthStore = create((set) => ({
   /* ---------- LOGOUT ---------- */
   logout: async () => {
     await signOut(auth);
-    set({ user: null });
+
+    set({
+      authUser: null,
+      isCheckingAuth: false
+    });
   }
 }));
